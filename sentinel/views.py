@@ -3,14 +3,29 @@ from datetime import datetime, timedelta
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.views import View
 
 from .models import EmailToken, EmailUser
-from .forms import EmailLoginForm
+from .forms import EmailLoginForm, ProfileForm
 
 from django.core.mail import send_mail
+
+@login_required
+class ProfileView(View):
+    template_name = 'profile.html'
+    form_class = ProfileForm
+    success_url = '/sentinel/profile/'
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+        return render(request, self.template_name, {'form': form})
 
 
 class LoginView(View):

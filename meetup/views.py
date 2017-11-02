@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.views import View
 
 from .models import MeetUp
+
 
 class LatestMeetUpTV(TemplateView):
     template_name = "past.html"

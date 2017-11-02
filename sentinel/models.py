@@ -1,11 +1,12 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
-from uuid import uuid4
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from uuid import uuid4
 
-# Create your models here.
+
 class EmailToken(models.Model):
     """This model is for token when someone sign in this website by email"""
     email = models.EmailField(verbose_name=_('The email was used to sign in'))
@@ -28,7 +29,8 @@ class EmailUserManager(BaseUserManager):
 
 
 class EmailUser(AbstractBaseUser):
-    email = models.EmailField(primary_key=True, verbose_name=_('email address'))
+    email = models.EmailField(primary_key=True,
+                              verbose_name=_('email address'))
     is_admin = models.BooleanField(default=False)
 
     objects = EmailUserManager()
@@ -49,15 +51,40 @@ class EmailUser(AbstractBaseUser):
 
     def has_perm(self, perm, obj=None):
         """Does the user have a specific permission?"""
-        # Simplest possible answer: Yes, always
         return True
 
     def has_module_perms(self, app_label):
         """Does the user have permissions to view the app `app_label`?"""
-        # Simplest possible answer: Yes, always
         return True
 
     @property
     def is_staff(self):
         """Is the user a member of staff?"""
         return self.is_admin
+
+
+User = get_user_model()
+
+
+class Profile(models.Model):
+    """This model is which profile for user"""
+    user = models.OneToOneField(User)
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name='username')
+    organization = models.CharField(max_length=100, null=True)
+    image = models.ImageField(upload_to='profile', null=True)
+    biography = models.TextField(max_length=4000, null=True)
+
+    def get_absolute_url(self):
+        return reverse('profile', kwargs={'slug': self.slug})
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # if not self.id:
+        # 이메일에서 앞에꺼 분리해서 slugify
+        #     self.slug = slugify(self.title, allow_unicode=True)
+        # super(Profile, self).save(*args, **kwargs)
+        pass
